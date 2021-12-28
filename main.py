@@ -28,6 +28,13 @@ volume.SetMasterVolumeLevel(0, None)
 minVolume = volumeRange[0]
 maxVolume = volumeRange[1]
 
+# Hand range
+minHandRange = 25
+maxHandRange = 200
+
+vol = 0
+volBar = 400
+volPercent = 100
 
 while True:
     _, img = cap.read()
@@ -47,21 +54,26 @@ while True:
         length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
         # print(length)
 
-        # Hand range 50 - 300
-
         # Volume Range -65 - 0
-        vol = np.interp(length, [25, 150], [minVolume, maxVolume])
+        vol = np.interp(length, [minHandRange, maxHandRange], [minVolume, maxVolume])
+        volBar = np.interp(length, [minHandRange, maxHandRange], [400, 150])
+        volPercent = np.interp(length, [minHandRange, maxHandRange], [0, 100])
+
         volume.SetMasterVolumeLevel(vol, None)
         print(length, ' ', vol)
 
         if length < 50:
             cv2.circle(img, px, 10, (0, 255, 0), cv2.FILLED)
 
+    cv2.rectangle(img, (50, 150), (85, 400), (255, 0, 0), 3)
+    cv2.rectangle(img, (50, int(volBar)), (85, 400), (255, 0, 0), cv2.FILLED)
+    cv2.putText(img, f'{int(volPercent)} %', (48, 438), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
+
     cTime = time.time()
     fps = 1 / (cTime - pTime)
     pTime = cTime
 
-    cv2.putText(img, 'FPS: ' + str(int(fps)), (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
+    cv2.putText(img, 'FPS: ' + str(int(fps)), (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
 
     cv2.imshow('image', img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
