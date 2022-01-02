@@ -40,25 +40,9 @@ while True:
     _, img = cap.read()
 
     img = detector.findHands(img)
-    lmList, bbox = detector.findPosition(img, draw=True)
+    lmList = detector.findPosition(img, draw=False)
 
     if len(lmList) != 0:
-
-        # Filter based on size
-        print(bbox)
-
-        # Find distance between index and thumb
-
-        # Convert volume
-
-        # Reduce resolution
-
-        # Check finger up
-
-        # If pinky down then set the volume
-
-        # Drawing
-
         p1 = (lmList[4][1], lmList[4][2])
         p2 = (lmList[8][1], lmList[8][2])
         px = ((p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2)
