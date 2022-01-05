@@ -14,7 +14,7 @@ cap = cv2.VideoCapture(1)
 pTime = 0
 cTime = 0
 
-detector = htm.handDetector()
+detector = htm.handDetector(detectionCon=0.7, maxHands=1)
 
 devices = AudioUtilities.GetSpeakers()
 interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
@@ -35,6 +35,7 @@ maxHandRange = 150
 vol = 0
 volBar = 400
 volPercent = 100
+cntFingerDownFrame = 0
 
 while True:
     _, img = cap.read()
@@ -46,7 +47,6 @@ while True:
 
         # STEP 1: Filter based on size
         area = (bbox[2] * bbox[3]) // 100
-        print(area)
 
         if 150 < area < 1000:
 
@@ -62,19 +62,28 @@ while True:
             smoothness = 5
             volPercent = smoothness * round(volPercent/smoothness)
 
-            # Check finger up
+            # STEP 5: Check finger up
+            fingers = detector.fingersUp()
+            print(fingers)
 
-            # If pinky down then set the volume
-            volume.SetMasterVolumeLevelScalar(volPercent / 100, None)
+            # STEP 5.1: If pinky down then set the volume
+            if not fingers[4]:
+                cntFingerDownFrame += 1
+                if cntFingerDownFrame >= 10:
+                    volume.SetMasterVolumeLevelScalar(volPercent / 100, None)
+                    cv2.circle(img, lineInfo[2], 10, (0, 255, 0), cv2.FILLED)
+            else:
+                cntFingerDownFrame = 0
 
-            # Drawing
-            if length < 50:
-                cv2.circle(img, lineInfo[2], 10, (0, 255, 0), cv2.FILLED)
-
+    # Drawing
     cv2.rectangle(img, (50, 150), (85, 400), (255, 0, 0), 3)
     cv2.rectangle(img, (50, int(volBar)), (85, 400), (255, 0, 0), cv2.FILLED)
     cv2.putText(img, f'{int(volPercent)} %', (48, 438), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
 
+    cVol = int(volume.GetMasterVolumeLevelScalar()*100)
+    cv2.putText(img, 'VolSet: ' + str(int(cVol)), (300, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+
+    # Frame rate
     cTime = time.time()
     fps = 1 / (cTime - pTime)
     pTime = cTime

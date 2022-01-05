@@ -56,7 +56,7 @@ class handDetector():
         fingers = []
 
         # Thumb
-        if self.lmList[self.tipIds[0]][1] < self.lmList[self.tipIds[0] - 1][1]:
+        if self.lmList[self.tipIds[0]][1] > self.lmList[self.tipIds[0] - 1][1]:
             fingers.append(1)
         else:
             fingers.append(0)
@@ -78,6 +78,7 @@ class handDetector():
         if draw:
             cv2.circle(img, p1, 10, (255, 0, 255), cv2.FILLED)
             cv2.circle(img, p2, 10, (255, 0, 255), cv2.FILLED)
+            cv2.circle(img, px, 10, (255, 0, 255), cv2.FILLED)
             cv2.line(img, p1, p2, (0, 255, 0), 2, 2)
 
         length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])

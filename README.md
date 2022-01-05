@@ -1,3 +1,5 @@
 # Gesture-Hand-Tracking
 
-To be updated ...
+This project is referenced from AI-course of Mr.Murtaza
+
+
