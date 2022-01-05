@@ -44,45 +44,32 @@ while True:
 
     if len(lmList) != 0:
 
-        # Filter based on size
+        # STEP 1: Filter based on size
         area = (bbox[2] * bbox[3]) // 100
         print(area)
 
         if 150 < area < 1000:
 
-            # Find distance between index and thumb
+            # STEP 2: Find distance between index and thumb
+            length, img, lineInfo = detector.findDistance(4, 8, img)
 
-            # Convert volume
+            # STEP 3: Convert volume
+            # Volume Range -65 - 0
+            volBar = np.interp(length, [minHandRange, maxHandRange], [400, 150])
+            volPercent = np.interp(length, [minHandRange, maxHandRange], [0, 100])
 
-            # Reduce resolution
+            # STEP 4: Reduce resolution
+            smoothness = 5
+            volPercent = smoothness * round(volPercent/smoothness)
 
             # Check finger up
 
             # If pinky down then set the volume
+            volume.SetMasterVolumeLevelScalar(volPercent / 100, None)
 
             # Drawing
-
-            p1 = (lmList[4][1], lmList[4][2])
-            p2 = (lmList[8][1], lmList[8][2])
-            px = ((p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2)
-
-            cv2.circle(img, p1, 10, (255, 0, 255), cv2.FILLED)
-            cv2.circle(img, p2, 10, (255, 0, 255), cv2.FILLED)
-            cv2.line(img, p1, p2, (0, 255, 0), 2, 2)
-
-            length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
-            # print(length)
-
-            # Volume Range -65 - 0
-            vol = np.interp(length, [minHandRange, maxHandRange], [minVolume, maxVolume])
-            volBar = np.interp(length, [minHandRange, maxHandRange], [400, 150])
-            volPercent = np.interp(length, [minHandRange, maxHandRange], [0, 100])
-
-            volume.SetMasterVolumeLevel(vol, None)
-            # print(length, ' ', vol)
-
             if length < 50:
-                cv2.circle(img, px, 10, (0, 255, 0), cv2.FILLED)
+                cv2.circle(img, lineInfo[2], 10, (0, 255, 0), cv2.FILLED)
 
     cv2.rectangle(img, (50, 150), (85, 400), (255, 0, 0), 3)
     cv2.rectangle(img, (50, int(volBar)), (85, 400), (255, 0, 0), cv2.FILLED)

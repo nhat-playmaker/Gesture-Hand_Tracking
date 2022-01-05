@@ -1,6 +1,6 @@
 import cv2
 import mediapipe as mp
-import time
+import math
 
 class handDetector():
     def __init__(self, mode=False, maxHands=2, detectionCon=0.5, trackCon=0.5):
@@ -12,6 +12,7 @@ class handDetector():
         self.mpHands = mp.solutions.hands
         self.hands = self.mpHands.Hands(self.mode, self.maxHands, 1, self.detectionCon, self.trackCon)
         self.mpDraw = mp.solutions.drawing_utils
+        self.tipIds = [4, 8, 12, 16, 20]
 
     def findHands(self, img, draw=True):
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -27,7 +28,8 @@ class handDetector():
     def findPosition(self, img, handNo=0, draw=True):
         xList = []
         yList = []
-        lmList = []
+        self.lmList = []
+
         bbox = (0, 0, 0, 0)
         if self.results.multi_hand_landmarks:
             myHand = self.results.multi_hand_landmarks[handNo]
@@ -36,7 +38,7 @@ class handDetector():
                 cx, cy = int(lm.x * w), int(lm.y * h)
                 xList.append(cx)
                 yList.append(cy)
-                lmList.append([id, cx, cy])
+                self.lmList.append([id, cx, cy])
                 if draw:
                     cv2.circle(img, (cx, cy), 5, (255, 0, 255), cv2.FILLED)
 
@@ -48,4 +50,36 @@ class handDetector():
             if draw:
                 cv2.rectangle(img, bbox, (0, 255, 0), 2)
 
-        return lmList, bbox
+        return self.lmList, bbox
+
+    def fingersUp(self):
+        fingers = []
+
+        # Thumb
+        if self.lmList[self.tipIds[0]][1] < self.lmList[self.tipIds[0] - 1][1]:
+            fingers.append(1)
+        else:
+            fingers.append(0)
+
+        # 4 fingers
+        for id in range(1, 5):
+            if self.lmList[self.tipIds[id]][2] < self.lmList[self.tipIds[id] - 2][2]:
+                fingers.append(1)
+            else:
+                fingers.append(0)
+
+        return fingers
+
+    def findDistance(self, x1, x2, img, draw=True):
+        p1 = (self.lmList[x1][1], self.lmList[x1][2])
+        p2 = (self.lmList[x2][1], self.lmList[x2][2])
+        px = ((p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2)
+
+        if draw:
+            cv2.circle(img, p1, 10, (255, 0, 255), cv2.FILLED)
+            cv2.circle(img, p2, 10, (255, 0, 255), cv2.FILLED)
+            cv2.line(img, p1, p2, (0, 255, 0), 2, 2)
+
+        length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
+
+        return length, img, (p1, p2, px)
