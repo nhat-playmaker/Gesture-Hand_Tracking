@@ -9,7 +9,7 @@ from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
 import HandTrackingModule as htm
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 pTime = 0
 cTime = 0
@@ -40,7 +40,7 @@ while True:
     _, img = cap.read()
 
     img = detector.findHands(img)
-    lmList = detector.findPosition(img, draw=False)
+    lmList, bbox = detector.findPosition(img, draw=False)
 
     if len(lmList) != 0:
         p1 = (lmList[4][1], lmList[4][2])

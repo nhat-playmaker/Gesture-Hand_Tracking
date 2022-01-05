@@ -9,7 +9,7 @@ from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
 import HandTrackingModule as htm
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 pTime = 0
 cTime = 0
@@ -29,8 +29,8 @@ minVolume = volumeRange[0]
 maxVolume = volumeRange[1]
 
 # Hand range
-minHandRange = 25
-maxHandRange = 200
+minHandRange = 50
+maxHandRange = 150
 
 vol = 0
 volBar = 400
@@ -45,41 +45,44 @@ while True:
     if len(lmList) != 0:
 
         # Filter based on size
-        print(bbox)
+        area = (bbox[2] * bbox[3]) // 100
+        print(area)
 
-        # Find distance between index and thumb
+        if 150 < area < 1000:
 
-        # Convert volume
+            # Find distance between index and thumb
 
-        # Reduce resolution
+            # Convert volume
 
-        # Check finger up
+            # Reduce resolution
 
-        # If pinky down then set the volume
+            # Check finger up
 
-        # Drawing
+            # If pinky down then set the volume
 
-        p1 = (lmList[4][1], lmList[4][2])
-        p2 = (lmList[8][1], lmList[8][2])
-        px = ((p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2)
+            # Drawing
 
-        cv2.circle(img, p1, 10, (255, 0, 255), cv2.FILLED)
-        cv2.circle(img, p2, 10, (255, 0, 255), cv2.FILLED)
-        cv2.line(img, p1, p2, (0, 255, 0), 2, 2)
+            p1 = (lmList[4][1], lmList[4][2])
+            p2 = (lmList[8][1], lmList[8][2])
+            px = ((p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2)
 
-        length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
-        # print(length)
+            cv2.circle(img, p1, 10, (255, 0, 255), cv2.FILLED)
+            cv2.circle(img, p2, 10, (255, 0, 255), cv2.FILLED)
+            cv2.line(img, p1, p2, (0, 255, 0), 2, 2)
 
-        # Volume Range -65 - 0
-        vol = np.interp(length, [minHandRange, maxHandRange], [minVolume, maxVolume])
-        volBar = np.interp(length, [minHandRange, maxHandRange], [400, 150])
-        volPercent = np.interp(length, [minHandRange, maxHandRange], [0, 100])
+            length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
+            # print(length)
 
-        volume.SetMasterVolumeLevel(vol, None)
-        print(length, ' ', vol)
+            # Volume Range -65 - 0
+            vol = np.interp(length, [minHandRange, maxHandRange], [minVolume, maxVolume])
+            volBar = np.interp(length, [minHandRange, maxHandRange], [400, 150])
+            volPercent = np.interp(length, [minHandRange, maxHandRange], [0, 100])
 
-        if length < 50:
-            cv2.circle(img, px, 10, (0, 255, 0), cv2.FILLED)
+            volume.SetMasterVolumeLevel(vol, None)
+            # print(length, ' ', vol)
+
+            if length < 50:
+                cv2.circle(img, px, 10, (0, 255, 0), cv2.FILLED)
 
     cv2.rectangle(img, (50, 150), (85, 400), (255, 0, 0), 3)
     cv2.rectangle(img, (50, int(volBar)), (85, 400), (255, 0, 0), cv2.FILLED)

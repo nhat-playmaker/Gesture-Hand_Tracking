@@ -36,13 +36,16 @@ class handDetector():
                 cx, cy = int(lm.x * w), int(lm.y * h)
                 xList.append(cx)
                 yList.append(cy)
-                # print(id, cx, cy)
                 lmList.append([id, cx, cy])
                 if draw:
                     cv2.circle(img, (cx, cy), 5, (255, 0, 255), cv2.FILLED)
 
-            bbox = (min(xList), min(yList), max(xList), max(yList))
+            min_x = min(xList) - 10
+            min_y = min(yList) - 10
+            max_x = max(xList) + 10
+            max_y = max(yList) + 10
+            bbox = (min_x, min_y, max_x-min_x, max_y-min_y)
             if draw:
-                cv2.rectangle(img, (bbox[0], bbox[1], bbox[2], bbox[3]), (0, 255, 0), 2)
+                cv2.rectangle(img, bbox, (0, 255, 0), 2)
 
         return lmList, bbox
