@@ -18,16 +18,20 @@ cap.set(4, hCam)
 pTime = 0
 cTime = 0
 
+cnt_frame = 0
+
 detector = htm.handDetector(maxHands=1)
 
 wScr, hScr = pyautogui.size()
 print((wScr, hScr))
 
 cnt = 0
+frame_cnt = 0
 
 while True:
     # 1. Find hand's landmark
     _, img = cap.read()
+    cnt_frame += 1
     img = detector.findHands(img)
     lmList, bbox = detector.findPosition(img)
     # 2. Get finger index
@@ -40,11 +44,11 @@ while True:
         fingers = detector.fingersUp()
         print(fingers)
 
-        cv2.rectangle(img, (0, 0), (wCam - frameR, hCam - frameR),
+        cv2.rectangle(img, (frameR, frameR), (wCam - frameR, hCam - frameR),
                       (0, 255, 255), 2)
 
         # 4. Only index finger: Moving mode
-        if fingers[1] == 1 and fingers[2] == 0:
+        if fingers[1] == 1 and fingers[2] == 0 and fingers[3] == 0 and fingers[4] == 0:
 
             # 5. Convert Coordinates
             x3 = np.interp(x1, (frameR, wCam - frameR), (0, wScr))
@@ -55,8 +59,11 @@ while True:
             clocY = plocY + (y3 - clocY) / smooth
 
             # 7. Move mouse
-            pyautogui.moveTo(wScr - clocX, clocY)
-            cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
+            if cnt_frame >= 10:
+                pyautogui.moveTo(wScr - clocX, clocY, _pause=False)
+                print(x1, y1)
+                print(int(wScr - clocX), int(clocY))
+                cv2.circle(img, (int(wScr - clocX), int(clocY)), 15, (255, 0, 255), cv2.FILLED)
 
             plocX = clocX
             plocY = clocY
@@ -69,12 +76,6 @@ while True:
                 if cnt > 10:
                     cnt = 0
                     pyautogui.click()
-
-        if fingers[0] == 1 and fingers[1] == 1:
-            cnt += 1
-            if cnt > 10:
-                cnt = 0
-                pyautogui.doubleClick()
 
     # 11. Frame rate
     cTime = time.time()
