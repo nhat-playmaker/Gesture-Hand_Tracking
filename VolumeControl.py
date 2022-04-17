@@ -6,10 +6,11 @@ import math
 from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+import pyautogui
 
 import HandTrackingModule as htm
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 pTime = 0
 cTime = 0

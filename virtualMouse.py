@@ -61,9 +61,6 @@ while True:
             # 7. Move mouse
             if cnt_frame >= 10:
                 pyautogui.moveTo(wScr - clocX, clocY, _pause=False)
-                print(x1, y1)
-                print(int(wScr - clocX), int(clocY))
-                cv2.circle(img, (int(wScr - clocX), int(clocY)), 15, (255, 0, 255), cv2.FILLED)
 
             plocX = clocX
             plocY = clocY
@@ -75,7 +72,7 @@ while True:
                 cnt += 1
                 if cnt > 10:
                     cnt = 0
-                    pyautogui.click()
+                    pyautogui.press('playpause')
 
     # 11. Frame rate
     cTime = time.time()

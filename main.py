@@ -6,6 +6,7 @@ import math
 from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+import pyautogui
 
 import HandTrackingModule as htm
 
@@ -36,19 +37,92 @@ vol = 0
 volBar = 400
 volPercent = 100
 cntFingerDownFrame = 0
+cntPausePlayModeFrame = 0
+cntPrevTrackFrame = 0
+cntNextTrackFrame = 0
 
+
+def isSetVolume(fingers: list, hand_label: str) -> bool:
+    if hand_label is None or hand_label == 'Left':
+        return False
+
+    if (
+            not fingers[2]
+            and not fingers[3]
+            and not fingers[4]
+    ):
+        return True
+    else:
+        return False
+
+
+def isPausePlayMode(fingers: list, hand_label: str) -> bool:
+    if hand_label is None or hand_label == 'Left':
+        return False
+
+    if all(fingers):
+        return True
+    else:
+        return False
+
+
+def isPreviousTrack(fingers: list, hand_label: str) -> bool:
+    if hand_label is None or hand_label == 'Right':
+        return False
+
+    if (
+            (not fingers[1]
+             and not fingers[2]
+             and not fingers[3]
+             and not fingers[4])
+            and (fingers[0]
+                 or not fingers[0])
+    ):
+        return True
+    else:
+        return False
+
+
+def isNextTrack(fingers: list, hand_label: str) -> bool:
+    if hand_label is None or hand_label == 'Right':
+        return False
+
+    if (
+            (fingers[1]
+             and fingers[2]
+             and fingers[3]
+             and fingers[4])
+            and (fingers[0]
+                 or not fingers[0])
+    ):
+        return True
+    else:
+        return False
+
+
+hand_label_dict = {
+    None: None,
+    'Left': 'Right',
+    'Right': 'Left'
+}
 while True:
     _, img = cap.read()
 
-    img = detector.findHands(img)
+    img, hand_label = detector.findHands(img)
+    hand_label = hand_label_dict[hand_label]
+
     lmList, bbox = detector.findPosition(img, draw=True)
 
     if len(lmList) != 0:
+
+        print(hand_label)
 
         # STEP 1: Filter based on size
         area = (bbox[2] * bbox[3]) // 100
 
         if 150 < area < 1000:
+
+            print(hand_label)
 
             # STEP 2: Find distance between index and thumb
             length, img, lineInfo = detector.findDistance(4, 8, img)
@@ -60,27 +134,52 @@ while True:
 
             # STEP 4: Reduce resolution
             smoothness = 5
-            volPercent = smoothness * round(volPercent/smoothness)
+            volPercent = smoothness * round(volPercent / smoothness)
 
             # STEP 5: Check finger up
             fingers = detector.fingersUp()
             print(fingers)
 
             # STEP 5.1: If pinky down then set the volume
-            if not fingers[4]:
+            if isSetVolume(fingers, hand_label):
                 cntFingerDownFrame += 1
-                if cntFingerDownFrame >= 10:
+                if cntFingerDownFrame >= 20:
                     volume.SetMasterVolumeLevelScalar(volPercent / 100, None)
                     cv2.circle(img, lineInfo[2], 10, (0, 255, 0), cv2.FILLED)
+                    cntFingerDownFrame = 0
             else:
                 cntFingerDownFrame = 0
+
+            if isPausePlayMode(fingers, hand_label):
+                cntPausePlayModeFrame += 1
+                if cntPausePlayModeFrame >= 50:
+                    pyautogui.press('playpause')
+                    cntPausePlayModeFrame = 0
+            else:
+                cntPausePlayModeFrame = 0
+
+            if isPreviousTrack(fingers, hand_label):
+                cntPrevTrackFrame += 1
+                if cntPrevTrackFrame >= 50:
+                    pyautogui.press('prevtrack')
+                    cntPrevTrackFrame = 0
+            else:
+                cntPrevTrackFrame = 0
+
+            if isNextTrack(fingers, hand_label):
+                cntNextTrackFrame += 1
+                if cntNextTrackFrame >= 50:
+                    pyautogui.press('nexttrack')
+                    cntNextTrackFrame = 0
+            else:
+                cntNextTrackFrame = 0
 
     # Drawing
     cv2.rectangle(img, (50, 150), (85, 400), (255, 0, 0), 3)
     cv2.rectangle(img, (50, int(volBar)), (85, 400), (255, 0, 0), cv2.FILLED)
     cv2.putText(img, f'{int(volPercent)} %', (48, 438), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
 
-    cVol = int(volume.GetMasterVolumeLevelScalar()*100)
+    cVol = int(volume.GetMasterVolumeLevelScalar() * 100)
     cv2.putText(img, 'VolSet: ' + str(int(cVol)), (300, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
 
     # Frame rate
