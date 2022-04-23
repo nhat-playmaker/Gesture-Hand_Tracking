@@ -17,7 +17,6 @@ detector = htm.handDetector(detectionCon=0.7, maxHands=1)
 # Range -65 (0%) to 0 (100%)
 
 m = alsaaudio.Mixer()
-volume = m.getvolume()[0]
 
 # Hand range
 minHandRange = 50
@@ -106,14 +105,10 @@ while True:
 
     if len(lmList) != 0:
 
-        print(hand_label)
-
         # STEP 1: Filter based on size
         area = (bbox[2] * bbox[3]) // 100
 
         if 150 < area < 1000:
-
-            print(hand_label)
 
             # STEP 2: Find distance between index and thumb
             length, img, lineInfo = detector.findDistance(4, 8, img)
@@ -165,21 +160,22 @@ while True:
             else:
                 cntNextTrackFrame = 0
 
-    # Drawing
-    cv2.rectangle(img, (50, 150), (85, 400), (255, 0, 0), 3)
-    cv2.rectangle(img, (50, int(volBar)), (85, 400), (255, 0, 0), cv2.FILLED)
-    cv2.putText(img, f'{int(volPercent)} %', (48, 438), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
+    # # Drawing
+    # cv2.rectangle(img, (50, 150), (85, 400), (255, 0, 0), 3)
+    # cv2.rectangle(img, (50, int(volBar)), (85, 400), (255, 0, 0), cv2.FILLED)
+    # cv2.putText(img, f'{int(volPercent)} %', (48, 438), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
+    #
+    # cVol = int(m.getvolume()[0])
+    # cv2.putText(img, 'VolSet: ' + str(int(cVol)), (300, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+    #
+    # # Frame rate
+    # cTime = time.time()
+    # fps = 1 / (cTime - pTime)
+    # pTime = cTime
+    #
+    # cv2.putText(img, 'FPS: ' + str(int(fps)), (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+    #
+    # cv2.imshow('image', img)
 
-    cVol = int(volume.GetMasterVolumeLevelScalar() * 100)
-    cv2.putText(img, 'VolSet: ' + str(int(cVol)), (300, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
-
-    # Frame rate
-    cTime = time.time()
-    fps = 1 / (cTime - pTime)
-    pTime = cTime
-
-    cv2.putText(img, 'FPS: ' + str(int(fps)), (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
-
-    cv2.imshow('image', img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
